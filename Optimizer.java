@@ -21,13 +21,13 @@ public class Optimizer {
     }
 
     public List<List<String>> optOne(String[][] init) {
-        //Ändrar matris till lista
+        //Skapar temporära matriser för att använda
         String[][] done = new String[init.length][4];
         String[][] donetwo = new String[init.length][4];
         int counter = 0;
         int counter2 = 0;
-        List<List<String>> temp = Arrays.stream(init).map(Arrays::asList).collect(Collectors.toList());
-        for (int l = 0; l < temp.size(); l++) {
+        List<List<String>> temp = Arrays.stream(init).map(Arrays::asList).collect(Collectors.toList());  //Gör om string matris till list matris
+        for (int l = 0; l < temp.size(); l++) { // Tar bort platser med null
             if (temp.get(l).get(0) == null) {
                 temp.remove(l);
                 l--;
@@ -45,7 +45,7 @@ public class Optimizer {
                 temp.remove(i);
                 counter++;
                 i--;
-            } else if (Integer.parseInt(temp.get(i).get(3)) == 2) {
+            } else if (Integer.parseInt(temp.get(i).get(3)) == 2) { // Kolla efter alla rutter med 2 ariklar, lägg in i annan matris
                 donetwo[counter2][0] = temp.get(i).get(0);
                 donetwo[counter2][1] = temp.get(i).get(1);
                 donetwo[counter2][2] = temp.get(i).get(2);
@@ -67,11 +67,12 @@ public class Optimizer {
         //temp innehåller nu bara delruttar med en art (ett stopp) i
 
         //Para ihop en delrutt med 2 ordrar i med en som bara har 1 order
-        for (int i = 0; i < twos.size(); i++) {// ska vi verkligen ha temp size här?
+        for (int i = 0; i < twos.size(); i++) {
             pairTwoOne(temp, done, twos, counter, ds.capacity);
             i--;
         }
         counter2 = done.length - temp.size();// ny counter för done
+        
         //para ihop ensamma ettor med varandra
         for (int i = 0; i < temp.size(); i++) {
             pairOneOne(temp, done, counter2, ds.capacity);
@@ -91,12 +92,9 @@ public class Optimizer {
         //Skriver ut hur en optimerad delrutt ser ut när den är skapad
         int totalcost = 0;
         for (int k = 0; k < allDone.size(); k++) {
-//            System.out.println("Artikel: " + allDone.get(k).get(0) + " Kostnad: " + allDone.get(k).get(1) + " Vikt: " + allDone.get(k).get(2) + " Antal: " + allDone.get(k).get(3));  
             totalcost = totalcost + Integer.valueOf(allDone.get(k).get(1));
         }
-//        System.out.println("Total cost for the hole route: " + totalcost);
 
-        //att göra: sortera delrutternas ordning
         //Sortera delrutternas ordning
         class CustomComparator implements Comparator<List<String>> {
 
@@ -107,10 +105,12 @@ public class Optimizer {
                 return Integer.valueOf(firstString_arg1).compareTo(Integer.valueOf(firstString_arg2));
             }
         }
-
+        //Sorterar med avseende på antal artiklar, minst först
         Collections.sort(allDone, new CustomComparator());
+        //Sorterar så vi får de med högst artiklar först
         Collections.reverse(allDone);
 
+        //Loop för att lägga de med minst kostnad först i matrisen, nu efter att vi har sorterat efter artiklar först
         for (int i = 0; i < allDone.size(); i++) {
             for (int j = 0; j < i; j++) {
                 if (i != j) {
@@ -197,7 +197,6 @@ public class Optimizer {
                 klar[arg3][2] = volume;
                 klar[arg3][3] = amount;
 
-                //System.out.println("Ny klar rutt: " + art + " " + cost + " " + volume + " " + amount);
                 arg3++; // en till ny rutt
                 twos.remove(i);
                 //Tar bort 1or
@@ -234,9 +233,8 @@ public class Optimizer {
                 if (j != i && start != end) {
                     int cost = rot.computeRoute(start, end);//beräkna cost för snabbast väg mellan hyllorna
                     distanceMatrix[counter1][counter2] = cost; //lägg in kostand på den plats vi är på i matrisen
-                    //System.out.println(counter1 + "," + counter2 + " cost:" + cost);
                     counter1++;
-                } else {//om vi hittar samma plats vi är på så ska kostnaden sparas som jätte stor
+                } else { //om vi hittar samma plats vi är på så ska kostnaden sparas som jätte stor
                     distanceMatrix[counter1][counter2] = 1000000000;
                     counter1++;
                 }
@@ -301,9 +299,6 @@ public class Optimizer {
                 klar[arg3][1] = cost;
                 klar[arg3][2] = volume;
                 klar[arg3][3] = amount;
-                /* System.out.println("Ny klar rutt: " + art + " " + cost + " " + volume + " " + amount);
-                System.out.println("-------" + arg3);
-                System.out.println("Listan på rutter som ej är klara: " + ones);*/
                 if (index == ones.size() - 1) {
                     index--;
                 }
@@ -312,18 +307,14 @@ public class Optimizer {
                 ones.remove(index);//tar bort rutt med en art från den arrayen med ettor
                 ones.remove(0);//tar bort rutt med en art från den arrayen med ettor
 
-                //System.out.println("Ny uppdaterad lista: " + ones);
             } else { // om en rutt med 2 inte går att kombinera med en till, spara rutt som rutt med 2 stopp.
                 //Spara in ny rutt och dess info i den arrayen med färdiga rutter
                 klar[arg3][0] = art;
                 klar[arg3][1] = cost;
                 klar[arg3][2] = volume;
                 klar[arg3][3] = amount;
-                /*System.out.println("Ny klar rutt: " + art + " " + cost + " " + volume + " " + amount);
-                System.out.println("Listan på rutter som ej är klara: " + ones);*/
                 ones.remove(index);//tar bort rutt med en art från den arrayen med ettor
                 ones.remove(0);//tar bort rutt med en art från den arrayen med ettor
-                // System.out.println("Ny uppdaterad lista: " + ones);
             }
         } else { //om ingen finns att para ihop med från hela början, spara som ensam
             //Spara in ny rutt och dess info i den arrayen med färdiga rutter
@@ -331,11 +322,7 @@ public class Optimizer {
             klar[arg3][1] = String.valueOf(startstopp);
             klar[arg3][2] = volume;
             klar[arg3][3] = amount;
-            /*System.out.println("Ny klar rutt: " + art + " " + cost + " " + volume + " " + amount);
-            System.out.println("-------" + arg3);
-            System.out.println("Listan på rutter som ej är klara: " + ones);*/
             ones.remove(0); //tar bort rutt med en art från den arrayen med ettor
-            //System.out.println("Ny uppdaterad lista: " + ones);
         }
         
     }
